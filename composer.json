@@ -1,0 +1,107 @@
+{
+    "name": "wiensa/n11-sp-api",
+    "description": "N11 Seller Partner API integration for Laravel",
+    "keywords": [
+        "laravel",
+        "n11",
+        "e-commerce",
+        "api",
+        "integration",
+        "seller-partner",
+        "marketplace"
+    ],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Serkan",
+            "email": "serkan@example.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "N11Api\\": "src/"
+        },
+        "files": [
+            "./helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "N11Api\\N11SpApi\\Tests\\": "tests"
+        }
+    },
+    "require": {
+        "php": "^8.3",
+        "guzzlehttp/guzzle": "^7.0",
+        "illuminate/support": "^10.0|^11.0"
+    },
+    "suggest": {
+        "illuminate/contracts": "for the Laravel integration"
+    },
+    "require-dev": {
+        "laravel/framework": "^11",
+        "laravel/pint": "^1.13.7",
+        "orchestra/testbench": "^9.0",
+        "pestphp/pest": "^2.28.1",
+        "phpstan/phpstan": "1.10.56",
+        "rector/rector": "0.19.5"
+    },
+    "scripts": {
+        "refactor": "rector",
+        "test:refactor": "rector --dry-run",
+        "test:types": "phpstan analyse --ansi",
+        "test:unit": "pest --colors=always",
+        "test:lint": "pint --test",
+        "test": [
+            "@test:refactor",
+            "@test:lint",
+            "@test:types",
+            "@test:unit"
+        ],
+        "fix:lint": "pint --preset laravel",
+        "fix:refactor": "rector",
+        "fix": [
+            "@fix:refactor",
+            "@fix:lint"
+        ],
+        "hook": [
+            "@hook:pre-commit",
+            "@hook:pre-push"
+        ],
+        "hook:install": [
+            "ln -sf $PWD/hooks/pre-commit .git/hooks/pre-commit",
+            "chmod +x .git/hooks/pre-commit",
+            "ln -sf $PWD/hooks/pre-push .git/hooks/pre-push",
+            "chmod +x .git/hooks/pre-push"
+        ],
+        "hook:pre-commit": [
+            "hooks/pre-commit"
+        ],
+        "hook:pre-push": [
+            "hooks/pre-push"
+        ],
+        "post-install-cmd": [
+            "@hook:install"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "N11Api\\N11SpApi\\N11SpApiServiceProvider"
+            ],
+            "aliases": {
+                "N11": "N11Api\\N11SpApi\\Facades\\N11"
+            }
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "preferred-install": "dist",
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
