@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Config;
 use Orchestra\Testbench\TestCase;
 use N11Api\N11SpApi\Facades\N11;
 use N11Api\N11SpApi\N11SpApiServiceProvider;
-use N11Api\N11SpApi\Services\N11Client;
+use N11Api\N11SpApi\N11Api;
 
 class N11ServiceProviderTest extends TestCase
 {
@@ -24,25 +24,30 @@ class N11ServiceProviderTest extends TestCase
         ];
     }
 
-    public function test_service_provider_registers_client(): void
+    /**
+     * Testlerden önce Laravel config ayarlarını yapıyoruz.
+     */
+    protected function setUp(): void
     {
+        parent::setUp();
+        
         // Geçici olarak API kimlik bilgilerini tanımlayalım
         Config::set('n11-sp-api.app_key', 'test-app-key');
         Config::set('n11-sp-api.app_secret', 'test-app-secret');
+        Config::set('n11-sp-api.base_url', 'https://api.n11.com/ws/');
+    }
 
-        // N11Client sınıfının container'a doğru bir şekilde kaydedildiğini kontrol edelim
-        $client = $this->app->make(N11Client::class);
-        $this->assertInstanceOf(N11Client::class, $client);
+    public function test_service_provider_registers_client(): void
+    {
+        // N11Api sınıfının container'a doğru bir şekilde kaydedildiğini kontrol edelim
+        $client = $this->app->make(N11Api::class);
+        $this->assertInstanceOf(N11Api::class, $client);
     }
 
     public function test_facade_works(): void
     {
-        // Geçici olarak API kimlik bilgilerini tanımlayalım
-        Config::set('n11-sp-api.app_key', 'test-app-key');
-        Config::set('n11-sp-api.app_secret', 'test-app-secret');
-
         // N11 facade'inin çalıştığını kontrol edelim
-        $this->assertInstanceOf(N11Client::class, N11::getFacadeRoot());
+        $this->assertInstanceOf(N11Api::class, N11::getFacadeRoot());
     }
 
     /**
@@ -50,20 +55,16 @@ class N11ServiceProviderTest extends TestCase
      */
     public function it_can_access_services_through_client(): void
     {
-        // Geçici olarak API kimlik bilgilerini tanımlayalım
-        Config::set('n11-sp-api.app_key', 'test-app-key');
-        Config::set('n11-sp-api.app_secret', 'test-app-secret');
+        // N11Api üzerinden servislere erişebildiğimizi kontrol edelim
+        $client = $this->app->make(N11Api::class);
 
-        // N11Client üzerinden servislere erişebildiğimizi kontrol edelim
-        $client = $this->app->make(N11Client::class);
-
-        $this->assertIsObject($client->category());
-        $this->assertIsObject($client->city());
-        $this->assertIsObject($client->order());
-        $this->assertIsObject($client->product());
-        $this->assertIsObject($client->shipment());
-        $this->assertIsObject($client->shipmentCompany());
-        $this->assertIsObject($client->productSelling());
-        $this->assertIsObject($client->productStock());
+        $this->assertIsObject($client->categories());
+        $this->assertIsObject($client->cities());
+        $this->assertIsObject($client->orders());
+        $this->assertIsObject($client->products());
+        $this->assertIsObject($client->shipments());
+        $this->assertIsObject($client->shipmentCompanies());
+        $this->assertIsObject($client->productSellings());
+        $this->assertIsObject($client->productStocks());
     }
 } 

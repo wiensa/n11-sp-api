@@ -3,28 +3,30 @@
 namespace N11Api\N11SpApi\Services\ShipmentCompany;
 
 use N11Api\N11SpApi\Services\BaseService;
-use N11Api\N11SpApi\Services\N11Client;
+use N11Api\N11SpApi\N11Api;
 
 class ShipmentCompanyService extends BaseService
 {
     /**
      * ShipmentCompanyService constructor.
+     * 
+     * @param N11Api $api N11 API istemcisi
      */
-    public function __construct(N11Client $client)
+    public function __construct(N11Api $api)
     {
-        parent::__construct($client);
+        parent::__construct($api);
         
         // Servis adını özel olarak ayarla
         $this->service_name = 'ShipmentCompanyService';
     }
     
     /**
-     * N11 üzerinde tanımlı olan tüm kargo şirketlerini listeler.
+     * Kargo şirketlerini listeler.
      *
      * @return object
      */
     public function getShipmentCompanies(): object
     {
-        return $this->call('GetShipmentCompanies');
+        return $this->callApi('GetShipmentCompanies');
     }
 } 

@@ -2,12 +2,18 @@
 
 namespace N11Api\N11SpApi\Services;
 
+use N11Api\N11SpApi\N11Api;
+use N11Api\N11SpApi\Traits\ApiRequest;
+use N11Api\N11SpApi\Traits\ResponseFormatter;
+
 abstract class BaseService
 {
+    use ApiRequest, ResponseFormatter;
+    
     /**
      * N11 API istemcisi
      */
-    protected N11Client $client;
+    protected N11Api $api;
     
     /**
      * Servis adı
@@ -16,10 +22,12 @@ abstract class BaseService
     
     /**
      * BaseService constructor.
+     * 
+     * @param N11Api $api N11 API istemcisi
      */
-    public function __construct(N11Client $client)
+    public function __construct(N11Api $api)
     {
-        $this->client = $client;
+        $this->api = $api;
         
         // Çocuk sınıflar tarafından override edilebilir
         $this->service_name = $this->getServiceName();
@@ -27,6 +35,8 @@ abstract class BaseService
     
     /**
      * Servis adını sınıf adından otomatik olarak tespit eder
+     * 
+     * @return string Servis adı
      */
     protected function getServiceName(): string
     {
@@ -39,12 +49,17 @@ abstract class BaseService
         
         return $class_name;
     }
-    
+
     /**
      * SOAP metodu çağır
+     * 
+     * @param string $method Metot adı
+     * @param array $params Parametreler
+     * @param bool $use_cache Önbellek kullanılsın mı?
+     * @return object Yanıt
      */
-    protected function call(string $method, array $params = []): object
+    protected function callApi(string $method, array $params = [], bool $use_cache = true): object
     {
-        return $this->client->callSoapMethod($this->service_name, $method, $params);
+        return $this->api->callSoapMethod($this->service_name, $method, $params, $use_cache);
     }
 } 

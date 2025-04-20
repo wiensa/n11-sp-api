@@ -3,16 +3,18 @@
 namespace N11Api\N11SpApi\Services\Product;
 
 use N11Api\N11SpApi\Services\BaseService;
-use N11Api\N11SpApi\Services\N11Client;
+use N11Api\N11SpApi\N11Api;
 
 class ProductService extends BaseService
 {
     /**
      * ProductService constructor.
+     * 
+     * @param N11Api $api N11 API istemcisi
      */
-    public function __construct(N11Client $client)
+    public function __construct(N11Api $api)
     {
-        parent::__construct($client);
+        parent::__construct($api);
         
         // Servis adını özel olarak ayarla
         $this->service_name = 'ProductService';
@@ -24,9 +26,9 @@ class ProductService extends BaseService
      * @param int $product_id Ürün ID
      * @return object
      */
-    public function getProductByProductId(int $product_id): object
+    public function getProductById(int $product_id): object
     {
-        return $this->call('GetProductByProductId', [
+        return $this->callApi('GetProductByProductId', [
             'productId' => $product_id
         ]);
     }
@@ -37,20 +39,20 @@ class ProductService extends BaseService
      * @param string $seller_code Mağaza ürün kodu
      * @return object
      */
-    public function getProductBySellerCode(string $seller_code): object
+    public function getProductByCode(string $seller_code): object
     {
-        return $this->call('GetProductBySellerCode', [
+        return $this->callApi('GetProductBySellerCode', [
             'sellerCode' => $seller_code
         ]);
     }
     
     /**
-     * N11 üzerindeki ürünleri listelemek için kullanılır.
+     * Ürünleri listeler.
      *
      * @param array $paging_data Sayfalama bilgileri (opsiyonel)
      * @return object
      */
-    public function getProductList(array $paging_data = []): object
+    public function getProducts(array $paging_data = []): object
     {
         $params = [];
         
@@ -58,101 +60,97 @@ class ProductService extends BaseService
             $params['pagingData'] = $paging_data;
         }
         
-        return $this->call('GetProductList', $params);
+        return $this->callApi('GetProductList', $params);
     }
     
     /**
-     * Mağazaya yeni ürün eklemek için kullanılır.
+     * Mağazaya yeni ürün ekler.
      *
      * @param array $product Ürün bilgileri
      * @return object
      */
-    public function saveProduct(array $product): object
+    public function createProduct(array $product): object
     {
-        return $this->call('SaveProduct', [
+        return $this->callApi('SaveProduct', [
             'product' => $product
         ]);
     }
     
     /**
-     * Kayıtlı olan bir ürünü N11 Id'si kullanarak silmek için kullanılır.
+     * N11 ürün ID'sini kullanarak sistemde kayıtlı olan bir ürünün silinmesi için kullanılır.
      *
      * @param int $product_id Ürün ID
      * @return object
      */
     public function deleteProductById(int $product_id): object
     {
-        return $this->call('DeleteProductById', [
+        return $this->callApi('DeleteProductById', [
             'productId' => $product_id
         ]);
     }
     
     /**
-     * Kayıtlı olan bir ürünü mağaza ürün kodu kullanılarak silmek için kullanılır.
+     * Mağaza ürün kodunu kullanarak sistemde kayıtlı olan bir ürünün silinmesi için kullanılır.
      *
      * @param string $seller_code Mağaza ürün kodu
      * @return object
      */
     public function deleteProductBySellerCode(string $seller_code): object
     {
-        return $this->call('DeleteProductBySellerCode', [
+        return $this->callApi('DeleteProductBySellerCode', [
             'productSellerCode' => $seller_code
         ]);
     }
     
     /**
-     * Bu metot mağazadaki ürünleri toplu şekilde onaylatmak için kullanılır.
+     * İşlem yapılan ve satın alınmayan ürünlerin onaylanması için kullanılır.
      *
-     * @param int $product_id Ürün ID
+     * @param array $products Ürün ID listesi
      * @return object
      */
-    public function approveProducts(int $product_id): object
+    public function approveProducts(array $products): object
     {
-        return $this->call('ApproveProducts', [
-            'productId' => $product_id
+        return $this->callApi('ApproveProducts', [
+            'productIdList' => $products
         ]);
     }
     
     /**
-     * Birden fazla ürünü silmek için kullanılır.
+     * N11 ürün ID'leri kullanılarak birden fazla ürünün silinmesi için kullanılır.
      *
-     * @param array $product_ids Ürün ID listesi
+     * @param array $products Ürün ID listesi
      * @return object
      */
-    public function batchDeleteProducts(array $product_ids): object
+    public function batchDeleteProducts(array $products): object
     {
-        return $this->call('BatchDeleteProducts', [
-            'productIdList' => [
-                'productId' => $product_ids
-            ]
+        return $this->callApi('BatchDeleteProducts', [
+            'productIdList' => $products
         ]);
     }
     
     /**
-     * Birden fazla ürünü kodlarıyla silmek için kullanılır.
+     * Mağaza ürün kodları kullanılarak birden fazla ürünün silinmesi için kullanılır.
      *
-     * @param array $seller_codes Mağaza ürün kodları listesi
+     * @param array $products Mağaza ürün kodları listesi
      * @return object
      */
-    public function batchDeleteProductsBySellerCode(array $seller_codes): object
+    public function batchDeleteProductsBySellerCode(array $products): object
     {
-        return $this->call('BatchDeleteProductsBySellerCode', [
-            'productSellerCodeList' => [
-                'productSellerCode' => $seller_codes
-            ]
+        return $this->callApi('BatchDeleteProductsBySellerCode', [
+            'productSellerCodeList' => $products
         ]);
     }
     
     /**
-     * Ürünleri sayfalama bilgisi vererek ID listesi halinde getirir.
+     * Arama kriterlerine göre ürün ID'lerini listeler.
      *
-     * @param array $paging_data Sayfalama bilgileri
+     * @param array $search_data Arama kriterleri
      * @return object
      */
-    public function getProductIdList(array $paging_data): object
+    public function getProductIds(array $search_data): object
     {
-        return $this->call('GetProductIdList', [
-            'pagingData' => $paging_data
+        return $this->callApi('GetProductIdList', [
+            'searchData' => $search_data
         ]);
     }
 } 

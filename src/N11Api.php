@@ -1,10 +1,9 @@
 <?php
 
-namespace N11Api\N11SpApi\Services;
+namespace N11Api\N11SpApi;
 
 use Exception;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use N11Api\N11SpApi\Services\Category\CategoryService;
 use N11Api\N11SpApi\Services\City\CityService;
@@ -14,11 +13,14 @@ use N11Api\N11SpApi\Services\ProductSelling\ProductSellingService;
 use N11Api\N11SpApi\Services\ProductStock\ProductStockService;
 use N11Api\N11SpApi\Services\Shipment\ShipmentService;
 use N11Api\N11SpApi\Services\ShipmentCompany\ShipmentCompanyService;
+use N11Api\N11SpApi\Traits\ApiRequest;
 use SoapClient;
 use SoapFault;
 
-class N11Client
+class N11Api
 {
+    use ApiRequest;
+    
     /**
      * N11 API anahtarı
      */
@@ -55,7 +57,11 @@ class N11Client
     protected array $services = [];
 
     /**
-     * N11Client constructor.
+     * N11Api constructor.
+     * 
+     * @param string|null $app_key API anahtarı
+     * @param string|null $app_secret API gizli anahtarı
+     * @param string|null $base_url API baz URL'i
      */
     public function __construct(string $app_key = null, string $app_secret = null, string $base_url = null)
     {
@@ -79,6 +85,10 @@ class N11Client
     
     /**
      * SOAP istemcisi oluştur
+     * 
+     * @param string $service Servis adı
+     * @return SoapClient
+     * @throws SoapFault
      */
     public function createSoapClient(string $service): SoapClient
     {
@@ -110,8 +120,14 @@ class N11Client
     
     /**
      * SOAP API'ye istek gönder
+     * 
+     * @param string $service Servis adı
+     * @param string $method Metot adı
+     * @param array $params Parametreler
+     * @param bool $use_cache Önbellek kullanılsın mı?
+     * @return object SOAP yanıtı
      */
-    public function callSoapMethod(string $service, string $method, array $params = []): object
+    public function callSoapMethod(string $service, string $method, array $params = [], bool $use_cache = true): object
     {
         $client = $this->createSoapClient($service);
         $request_params = array_merge($this->auth_params, $params);
@@ -124,7 +140,7 @@ class N11Client
             ]);
         }
         
-        $cache_enabled = config('n11-sp-api.cache.enabled', true);
+        $cache_enabled = config('n11-sp-api.cache.enabled', true) && $use_cache;
         $cache_ttl = config('n11-sp-api.cache.ttl', 3600);
         
         // GET isteklerini önbelleğe alabiliriz
@@ -143,8 +159,10 @@ class N11Client
     
     /**
      * Kategori servisi
+     * 
+     * @return CategoryService
      */
-    public function category(): CategoryService
+    public function categories(): CategoryService
     {
         if (!isset($this->services['category'])) {
             $this->services['category'] = new CategoryService($this);
@@ -155,8 +173,10 @@ class N11Client
     
     /**
      * Şehir servisi
+     * 
+     * @return CityService
      */
-    public function city(): CityService
+    public function cities(): CityService
     {
         if (!isset($this->services['city'])) {
             $this->services['city'] = new CityService($this);
@@ -167,8 +187,10 @@ class N11Client
     
     /**
      * Sipariş servisi
+     * 
+     * @return OrderService
      */
-    public function order(): OrderService
+    public function orders(): OrderService
     {
         if (!isset($this->services['order'])) {
             $this->services['order'] = new OrderService($this);
@@ -179,8 +201,10 @@ class N11Client
     
     /**
      * Ürün servisi
+     * 
+     * @return ProductService
      */
-    public function product(): ProductService
+    public function products(): ProductService
     {
         if (!isset($this->services['product'])) {
             $this->services['product'] = new ProductService($this);
@@ -191,8 +215,10 @@ class N11Client
     
     /**
      * Kargo servisi
+     * 
+     * @return ShipmentService
      */
-    public function shipment(): ShipmentService
+    public function shipments(): ShipmentService
     {
         if (!isset($this->services['shipment'])) {
             $this->services['shipment'] = new ShipmentService($this);
@@ -202,38 +228,74 @@ class N11Client
     }
     
     /**
-     * Kargo şirketleri servisi
+     * Kargo firması servisi
+     * 
+     * @return ShipmentCompanyService
      */
-    public function shipmentCompany(): ShipmentCompanyService
+    public function shipmentCompanies(): ShipmentCompanyService
     {
-        if (!isset($this->services['shipmentCompany'])) {
-            $this->services['shipmentCompany'] = new ShipmentCompanyService($this);
+        if (!isset($this->services['shipment_company'])) {
+            $this->services['shipment_company'] = new ShipmentCompanyService($this);
         }
         
-        return $this->services['shipmentCompany'];
+        return $this->services['shipment_company'];
     }
     
     /**
      * Ürün satış servisi
+     * 
+     * @return ProductSellingService
      */
-    public function productSelling(): ProductSellingService
+    public function productSellings(): ProductSellingService
     {
-        if (!isset($this->services['productSelling'])) {
-            $this->services['productSelling'] = new ProductSellingService($this);
+        if (!isset($this->services['product_selling'])) {
+            $this->services['product_selling'] = new ProductSellingService($this);
         }
         
-        return $this->services['productSelling'];
+        return $this->services['product_selling'];
     }
     
     /**
      * Ürün stok servisi
+     * 
+     * @return ProductStockService
      */
-    public function productStock(): ProductStockService
+    public function productStocks(): ProductStockService
     {
-        if (!isset($this->services['productStock'])) {
-            $this->services['productStock'] = new ProductStockService($this);
+        if (!isset($this->services['product_stock'])) {
+            $this->services['product_stock'] = new ProductStockService($this);
         }
         
-        return $this->services['productStock'];
+        return $this->services['product_stock'];
+    }
+    
+    /**
+     * API anahtarı alır
+     * 
+     * @return string
+     */
+    public function getAppKey(): string
+    {
+        return $this->app_key;
+    }
+    
+    /**
+     * API gizli anahtarı alır
+     * 
+     * @return string
+     */
+    public function getAppSecret(): string
+    {
+        return $this->app_secret;
+    }
+    
+    /**
+     * API baz URL'ini alır
+     * 
+     * @return string
+     */
+    public function getBaseUrl(): string
+    {
+        return $this->base_url;
     }
 } 

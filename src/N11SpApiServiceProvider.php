@@ -3,10 +3,12 @@
 namespace N11Api\N11SpApi;
 
 use Illuminate\Support\ServiceProvider;
-use N11Api\N11SpApi\Services\N11Client;
 
 class N11SpApiServiceProvider extends ServiceProvider
 {
+    /**
+     * Bootstrap the application services.
+     */
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
@@ -16,22 +18,25 @@ class N11SpApiServiceProvider extends ServiceProvider
         }
     }
 
+    /**
+     * Register the application services.
+     */
     public function register(): void
     {
         // Config dosyasını merger
         $this->mergeConfigFrom(__DIR__ . '/../config/n11-sp-api.php', 'n11-sp-api');
 
-        // N11Client singleton olarak kayıt
+        // N11Api singleton olarak kayıt
         $this->app->singleton('n11-sp-api', function () {
-            return new N11Client(
+            return new N11Api(
                 config('n11-sp-api.app_key'),
                 config('n11-sp-api.app_secret'),
                 config('n11-sp-api.base_url')
             );
         });
 
-        // N11Client class bağımlılığını çözümle
-        $this->app->bind(N11Client::class, function ($app) {
+        // N11Api class bağımlılığını çözümle
+        $this->app->bind(N11Api::class, function ($app) {
             return $app->make('n11-sp-api');
         });
     }

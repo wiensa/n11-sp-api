@@ -3,28 +3,30 @@
 namespace N11Api\N11SpApi\Services\Order;
 
 use N11Api\N11SpApi\Services\BaseService;
-use N11Api\N11SpApi\Services\N11Client;
+use N11Api\N11SpApi\N11Api;
 
 class OrderService extends BaseService
 {
     /**
      * OrderService constructor.
+     * 
+     * @param N11Api $api N11 API istemcisi
      */
-    public function __construct(N11Client $client)
+    public function __construct(N11Api $api)
     {
-        parent::__construct($client);
+        parent::__construct($api);
         
         // Servis adını özel olarak ayarla
         $this->service_name = 'OrderService';
     }
     
     /**
-     * Bu metot sipariş ile ilgili özet bilgileri listelemek için kullanılır.
+     * Siparişleri listeler.
      *
      * @param array $search_data Arama kriterleri
      * @return object
      */
-    public function orderList(array $search_data = []): object
+    public function getOrders(array $search_data = []): object
     {
         $params = [];
         
@@ -32,18 +34,18 @@ class OrderService extends BaseService
             $params['searchData'] = $search_data;
         }
         
-        return $this->call('OrderList', $params);
+        return $this->callApi('OrderList', $params);
     }
     
     /**
-     * Sipariş N11 ID bilgisi kullanılarak sipariş detaylarını almak için kullanılır.
+     * Sipariş detayını getirir.
      *
      * @param int $order_id Sipariş ID
      * @return object
      */
-    public function orderDetail(int $order_id): object
+    public function getOrderDetail(int $order_id): object
     {
-        return $this->call('OrderDetail', [
+        return $this->callApi('OrderDetail', [
             'orderRequest' => [
                 'id' => $order_id
             ]
@@ -51,12 +53,12 @@ class OrderService extends BaseService
     }
     
     /**
-     * Bu metot sipariş kalemleri ile ilgili gelişmiş bilgileri listelemek için kullanılır.
+     * Siparişleri detaylı listeler.
      *
      * @param array $search_data Arama kriterleri
      * @return object
      */
-    public function detailedOrderList(array $search_data = []): object
+    public function getDetailedOrders(array $search_data = []): object
     {
         $params = [];
         
@@ -64,58 +66,58 @@ class OrderService extends BaseService
             $params['searchData'] = $search_data;
         }
         
-        return $this->call('DetailedOrderList', $params);
+        return $this->callApi('DetailedOrderList', $params);
     }
     
     /**
-     * Bu metot sipariş kalemini onaylamak amacıyla kullanılır.
+     * Sipariş kalemini onaylar.
      *
      * @param array $order_item_list Sipariş kalemi listesi
      * @return object
      */
-    public function orderItemAccept(array $order_item_list): object
+    public function acceptOrderItems(array $order_item_list): object
     {
-        return $this->call('OrderItemAccept', [
+        return $this->callApi('OrderItemAccept', [
             'orderItemList' => $order_item_list
         ]);
     }
     
     /**
-     * Bu metot sipariş kalemini reddetmek amacıyla kullanılır.
+     * Sipariş kalemini reddeder.
      *
      * @param array $order_item_list Sipariş kalemi listesi
      * @return object
      */
-    public function orderItemReject(array $order_item_list): object
+    public function rejectOrderItems(array $order_item_list): object
     {
-        return $this->call('OrderItemReject', [
+        return $this->callApi('OrderItemReject', [
             'orderItemList' => $order_item_list
         ]);
     }
     
     /**
-     * Bu metot sipariş kalemini kargolamak amacıyla kullanılır.
+     * Sipariş kaleminin gönderim bilgisini günceller.
      *
-     * @param array $order_item_list Sipariş kalemi listesi
+     * @param array $shipment_info Gönderim bilgileri
      * @return object
      */
-    public function makeOrderItemShipment(array $order_item_list): object
+    public function shipOrderItem(array $shipment_info): object
     {
-        return $this->call('MakeOrderItemShipment', [
-            'orderItemList' => $order_item_list
+        return $this->callApi('MakeOrderItemShipment', [
+            'orderItemShipmentList' => $shipment_info
         ]);
     }
     
     /**
-     * Bu metot sipariş kalemi için kargo kodunu değiştirmek amacıyla kullanılır.
+     * Sipariş için takip numarasını günceller.
      *
-     * @param array $order_item_list Sipariş kalemi listesi
+     * @param array $tracking_info Takip bilgileri
      * @return object
      */
-    public function updateTrackingNumber(array $order_item_list): object
+    public function updateTrackingNumber(array $tracking_info): object
     {
-        return $this->call('UpdateTrackingNumber', [
-            'orderItemList' => $order_item_list
+        return $this->callApi('UpdateTrackingNumber', [
+            'orderItemShipmentList' => $tracking_info
         ]);
     }
 } 

@@ -19,13 +19,13 @@ N11 platformu ile entegrasyon sağlayarak, ürün yönetimi, sipariş takibi, ka
 Composer aracılığıyla paketi projenize ekleyin:
 
 ```bash
-composer require serkan/n11-sp-api
+composer require wiensa/n11-sp-api
 ```
 
 Paketi yükledikten sonra, N11 API yapılandırma dosyasını yayınlayın:
 
 ```bash
-php artisan vendor:publish --provider="Serkan\N11SpApi\N11SpApiServiceProvider" --tag="config"
+php artisan vendor:publish --provider="N11Api\N11SpApi\N11SpApiServiceProvider" --tag="config"
 ```
 
 Bu komut, `config/n11-sp-api.php` yapılandırma dosyasını projenize ekleyecektir.
@@ -46,16 +46,16 @@ Bu anahtarları N11 Seller Partner API panelinden alabilirsiniz.
 ### Facade ile Kullanım
 
 ```php
-use Serkan\N11SpApi\Facades\N11;
+use N11Api\N11SpApi\Facades\N11;
 
-// Üst seviye kategorileri listele
-$categories = N11::category()->getTopLevelCategories();
+// Kategorileri listele
+$categories = N11::categories()->getCategories();
 
 // Ürün bilgilerini getir
-$product = N11::product()->getProductByProductId(123456);
+$product = N11::products()->getProductById(123456);
 
 // Siparişleri listele
-$orders = N11::order()->orderList([
+$orders = N11::orders()->getOrders([
     'status' => 'New',
     'period' => [
         'startDate' => '01/01/2023',
@@ -67,20 +67,20 @@ $orders = N11::order()->orderList([
 ### Dependency Injection ile Kullanım
 
 ```php
-use Serkan\N11SpApi\Services\N11Client;
+use N11Api\N11SpApi\N11Api;
 
 class ProductController extends Controller
 {
-    protected N11Client $n11;
+    protected N11Api $n11;
     
-    public function __construct(N11Client $n11)
+    public function __construct(N11Api $n11)
     {
         $this->n11 = $n11;
     }
     
     public function getProducts()
     {
-        $products = $this->n11->product()->getProductList([
+        $products = $this->n11->products()->getProducts([
             'currentPage' => 0,
             'pageSize' => 20
         ]);
@@ -94,14 +94,14 @@ class ProductController extends Controller
 
 Paket, N11 API'sine erişmek için aşağıdaki servisleri içerir:
 
-- **CategoryService**: Kategori işlemleri
-- **CityService**: Şehir ve ilçe işlemleri
-- **OrderService**: Sipariş işlemleri
-- **ProductService**: Ürün işlemleri
-- **ShipmentService**: Teslimat şablonu işlemleri
-- **ShipmentCompanyService**: Kargo şirketi işlemleri
-- **ProductSellingService**: Ürün satış durumu işlemleri
-- **ProductStockService**: Ürün stok işlemleri
+- **CategoryService**: Kategori işlemleri (`$n11->categories()`)
+- **CityService**: Şehir ve ilçe işlemleri (`$n11->cities()`)
+- **OrderService**: Sipariş işlemleri (`$n11->orders()`)
+- **ProductService**: Ürün işlemleri (`$n11->products()`)
+- **ShipmentService**: Teslimat şablonu işlemleri (`$n11->shipments()`)
+- **ShipmentCompanyService**: Kargo şirketi işlemleri (`$n11->shipmentCompanies()`)
+- **ProductSellingService**: Ürün satış durumu işlemleri (`$n11->productSellings()`)
+- **ProductStockService**: Ürün stok işlemleri (`$n11->productStocks()`)
 
 Her servis, ilgili N11 API metodlarını içerir ve belgeli metodlarla kolay kullanım sağlar.
 
@@ -110,23 +110,21 @@ Her servis, ilgili N11 API metodlarını içerir ve belgeli metodlarla kolay kul
 ### Kategori Listeleme
 
 ```php
-// Tüm üst seviye kategorileri getir
-$topCategories = N11::category()->getTopLevelCategories();
+// Tüm kategorileri getir
+$categories = N11::categories()->getCategories();
 
 // Kategori detaylarını döngü ile işle
-foreach ($topCategories->categoryList->category as $category) {
+foreach ($categories as $category) {
     echo "Kategori ID: " . $category->id . "\n";
     echo "Kategori Adı: " . $category->name . "\n";
     
     // Alt kategorileri getir
-    $subCategories = N11::category()->getSubCategories($category->id);
+    $subCategories = N11::categories()->getSubCategories($category->id);
     
     // Alt kategorileri işle
-    if (isset($subCategories->category->subCategoryList->subCategory)) {
-        foreach ($subCategories->category->subCategoryList->subCategory as $subCategory) {
-            echo "  Alt Kategori ID: " . $subCategory->id . "\n";
-            echo "  Alt Kategori Adı: " . $subCategory->name . "\n";
-        }
+    foreach ($subCategories as $subCategory) {
+        echo "  Alt Kategori ID: " . $subCategory->id . "\n";
+        echo "  Alt Kategori Adı: " . $subCategory->name . "\n";
     }
 }
 ```
@@ -167,13 +165,13 @@ $product = [
     'shipmentTemplate' => 'Standart Teslimat'
 ];
 
-$result = N11::product()->saveProduct($product);
+$result = N11::products()->createProduct($product);
 ```
 
 ### Siparişleri Listeleme
 
 ```php
-$orders = N11::order()->orderList([
+$orders = N11::orders()->getOrders([
     'status' => 'New', // New, Approved, Rejected, Shipped, Delivered, Completed
     'period' => [
         'startDate' => '01/01/2023',
@@ -192,16 +190,55 @@ foreach ($orders->orderList->order as $order) {
     echo "Alıcı: " . $order->buyer->fullName . "\n";
     
     // Sipariş detayını getir
-    $orderDetail = N11::order()->orderDetail($order->id);
+    $orderDetail = N11::orders()->getOrderDetail($order->id);
     
     // Sipariş kalemlerini işle
-    foreach ($orderDetail->orderDetail->itemList->item as $item) {
+    foreach ($orderDetail->orderItems as $item) {
         echo "  Ürün: " . $item->productName . "\n";
         echo "  Adet: " . $item->quantity . "\n";
         echo "  Fiyat: " . $item->price . "\n";
     }
 }
 ```
+
+### Ürün Stok Yönetimi
+
+```php
+// Ürün stoğunu sorgula
+$stockInfo = N11::productStocks()->getProductStockByProductId(123456);
+
+// Stok güncelle
+$stockParams = [
+    'items' => [
+        [
+            'productId' => 123456,
+            'quantity' => 100,
+            'version' => $stockInfo->version
+        ]
+    ]
+];
+
+$result = N11::productStocks()->updateProductStock($stockParams);
+```
+
+### Ürün Satış Durum Yönetimi
+
+```php
+// Ürünü satışa kapat
+$result = N11::productSellings()->stopSellingProductByProductId(123456);
+
+// Ürünü satışa aç
+$result = N11::productSellings()->startSellingProductByProductId(123456);
+```
+
+## Sürüm Değişiklikleri
+
+### 1.x
+
+- N11Api sınıfı ve namespace güncellemeleri
+- Servis metot adları güncellendi (çoğul yapıldı: categories(), cities(), vb.)
+- Daha tutarlı bir API arayüzü eklendi
+- PHP 8.3 desteği eklendi
 
 ## Lisans
 

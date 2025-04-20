@@ -3,16 +3,19 @@
 namespace N11Api\N11SpApi\Services\Category;
 
 use N11Api\N11SpApi\Services\BaseService;
-use N11Api\N11SpApi\Services\N11Client;
+use N11Api\N11SpApi\N11Api;
+use N11Api\N11SpApi\Exceptions\N11ApiException;
 
 class CategoryService extends BaseService
 {
     /**
      * CategoryService constructor.
+     * 
+     * @param N11Api $api N11 API istemcisi
      */
-    public function __construct(N11Client $client)
+    public function __construct(N11Api $api)
     {
-        parent::__construct($client);
+        parent::__construct($api);
         
         // Servis adını özel olarak ayarla
         $this->service_name = 'CategoryService';
@@ -21,37 +24,45 @@ class CategoryService extends BaseService
     /**
      * N11 üzerinde tanımlanmış tüm üst seviye kategorileri döndürür.
      *
-     * @return object
+     * @return array
+     * @throws N11ApiException
      */
-    public function getTopLevelCategories(): object
+    public function getCategories(): array
     {
-        return $this->call('GetTopLevelCategories');
+        $response = $this->callApi('GetTopLevelCategories');
+        return $this->formatCollectionResponse($response, 'categoryList');
     }
     
     /**
      * Kodu verilen kategorinin birinci seviye alt kategorilerine ulaşmak için kullanılır.
      *
      * @param int $category_id Kategori ID
-     * @return object
+     * @return array
+     * @throws N11ApiException
      */
-    public function getSubCategories(int $category_id): object
+    public function getSubCategories(int $category_id): array
     {
-        return $this->call('GetSubCategories', [
+        $response = $this->callApi('GetSubCategories', [
             'categoryId' => $category_id
         ]);
+        
+        return $this->formatCollectionResponse($response, 'category');
     }
     
     /**
      * Kodu verilen kategorinin birinci seviye üst kategorilerine ulaşmak için kullanılır.
      *
      * @param int $category_id Kategori ID
-     * @return object
+     * @return array
+     * @throws N11ApiException
      */
-    public function getParentCategory(int $category_id): object
+    public function getParentCategory(int $category_id): array
     {
-        return $this->call('GetParentCategory', [
+        $response = $this->callApi('GetParentCategory', [
             'categoryId' => $category_id
         ]);
+        
+        return $this->formatSingleResponse($response, 'category');
     }
     
     /**
@@ -59,13 +70,16 @@ class CategoryService extends BaseService
      * bu kategorilere ait olan özelliklerin listelenmesi için kullanılır.
      *
      * @param int $category_id Kategori ID
-     * @return object
+     * @return array
+     * @throws N11ApiException
      */
-    public function getCategoryAttributesId(int $category_id): object
+    public function getCategoryAttributesId(int $category_id): array
     {
-        return $this->call('GetCategoryAttributesId', [
+        $response = $this->callApi('GetCategoryAttributesId', [
             'categoryId' => $category_id
         ]);
+        
+        return $this->formatCollectionResponse($response, 'categoryAttribute');
     }
     
     /**
@@ -74,9 +88,10 @@ class CategoryService extends BaseService
      *
      * @param int $category_id Kategori ID
      * @param array $paging_data Sayfalama bilgileri (opsiyonel)
-     * @return object
+     * @return array
+     * @throws N11ApiException
      */
-    public function getCategoryAttributes(int $category_id, array $paging_data = []): object
+    public function getCategoryAttributes(int $category_id, array $paging_data = []): array
     {
         $params = [
             'categoryId' => $category_id
@@ -86,7 +101,9 @@ class CategoryService extends BaseService
             $params['pagingData'] = $paging_data;
         }
         
-        return $this->call('GetCategoryAttributes', $params);
+        $response = $this->callApi('GetCategoryAttributes', $params);
+        
+        return $this->formatCollectionResponse($response, 'categoryAttributes');
     }
     
     /**
@@ -94,9 +111,10 @@ class CategoryService extends BaseService
      *
      * @param int $attribute_id Özellik ID
      * @param array $paging_data Sayfalama bilgileri (opsiyonel)
-     * @return object
+     * @return array
+     * @throws N11ApiException
      */
-    public function getCategoryAttributeValue(int $attribute_id, array $paging_data = []): object
+    public function getAttributeValues(int $attribute_id, array $paging_data = []): array
     {
         $params = [
             'categoryProductAttributeId' => $attribute_id
@@ -106,6 +124,8 @@ class CategoryService extends BaseService
             $params['pagingData'] = $paging_data;
         }
         
-        return $this->call('GetCategoryAttributeValue', $params);
+        $response = $this->callApi('GetCategoryAttributeValue', $params);
+        
+        return $this->formatCollectionResponse($response, 'categoryAttributeValue');
     }
 } 

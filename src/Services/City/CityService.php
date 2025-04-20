@@ -3,16 +3,18 @@
 namespace N11Api\N11SpApi\Services\City;
 
 use N11Api\N11SpApi\Services\BaseService;
-use N11Api\N11SpApi\Services\N11Client;
+use N11Api\N11SpApi\N11Api;
 
 class CityService extends BaseService
 {
     /**
      * CityService constructor.
+     * 
+     * @param N11Api $api N11 API istemcisi
      */
-    public function __construct(N11Client $client)
+    public function __construct(N11Api $api)
     {
-        parent::__construct($client);
+        parent::__construct($api);
         
         // Servis adını özel olarak ayarla
         $this->service_name = 'CityService';
@@ -25,7 +27,7 @@ class CityService extends BaseService
      */
     public function getCities(): object
     {
-        return $this->call('GetCities');
+        return $this->callApi('GetCities');
     }
     
     /**
@@ -36,7 +38,7 @@ class CityService extends BaseService
      */
     public function getCity(int $city_id): object
     {
-        return $this->call('GetCity', [
+        return $this->callApi('GetCity', [
             'cityCode' => $city_id
         ]);
     }
@@ -49,7 +51,7 @@ class CityService extends BaseService
      */
     public function getDistrict(int $city_id): object
     {
-        return $this->call('GetDistrict', [
+        return $this->callApi('GetDistrict', [
             'cityCode' => $city_id
         ]);
     }
@@ -62,7 +64,7 @@ class CityService extends BaseService
      */
     public function getNeighborhoods(int $district_id): object
     {
-        return $this->call('GetNeighborhoods', [
+        return $this->callApi('GetNeighborhoods', [
             'districtId' => $district_id
         ]);
     }

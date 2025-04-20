@@ -3,16 +3,18 @@
 namespace N11Api\N11SpApi\Services\ProductSelling;
 
 use N11Api\N11SpApi\Services\BaseService;
-use N11Api\N11SpApi\Services\N11Client;
+use N11Api\N11SpApi\N11Api;
 
 class ProductSellingService extends BaseService
 {
     /**
      * ProductSellingService constructor.
+     * 
+     * @param N11Api $api N11 API istemcisi
      */
-    public function __construct(N11Client $client)
+    public function __construct(N11Api $api)
     {
-        parent::__construct($client);
+        parent::__construct($api);
         
         // Servis adını özel olarak ayarla
         $this->service_name = 'ProductSellingService';
@@ -26,7 +28,7 @@ class ProductSellingService extends BaseService
      */
     public function stopSellingProductByProductId(int $product_id): object
     {
-        return $this->call('StopSellingProductByProductId', [
+        return $this->callApi('StopSellingProductByProductId', [
             'productId' => $product_id
         ]);
     }
@@ -39,7 +41,7 @@ class ProductSellingService extends BaseService
      */
     public function startSellingProductByProductId(int $product_id): object
     {
-        return $this->call('StartSellingProductByProductId', [
+        return $this->callApi('StartSellingProductByProductId', [
             'productId' => $product_id
         ]);
     }
@@ -52,7 +54,7 @@ class ProductSellingService extends BaseService
      */
     public function stopSellingProductBySellerCode(string $seller_code): object
     {
-        return $this->call('StopSellingProductBySellerCode', [
+        return $this->callApi('StopSellingProductBySellerCode', [
             'productSellerCode' => $seller_code
         ]);
     }
@@ -65,7 +67,7 @@ class ProductSellingService extends BaseService
      */
     public function startSellingProductBySellerCode(string $seller_code): object
     {
-        return $this->call('StartSellingProductBySellerCode', [
+        return $this->callApi('StartSellingProductBySellerCode', [
             'productSellerCode' => $seller_code
         ]);
     }

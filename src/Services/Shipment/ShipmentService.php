@@ -3,41 +3,43 @@
 namespace N11Api\N11SpApi\Services\Shipment;
 
 use N11Api\N11SpApi\Services\BaseService;
-use N11Api\N11SpApi\Services\N11Client;
+use N11Api\N11SpApi\N11Api;
 
 class ShipmentService extends BaseService
 {
     /**
      * ShipmentService constructor.
+     * 
+     * @param N11Api $api N11 API istemcisi
      */
-    public function __construct(N11Client $client)
+    public function __construct(N11Api $api)
     {
-        parent::__construct($client);
+        parent::__construct($api);
         
         // Servis adını özel olarak ayarla
         $this->service_name = 'ShipmentService';
     }
     
     /**
-     * Oluşturulan teslimat şablonu bilgilerini listelemek için kullanılan metoddur.
+     * Kargo şablonu listesini döndürür.
      *
      * @return object
      */
     public function getShipmentTemplateList(): object
     {
-        return $this->call('GetShipmentTemplateList');
+        return $this->callApi('GetShipmentTemplateList');
     }
     
     /**
-     * Teslimat şablon ismi ile aratılan şablonun bilgilerini döndürür.
+     * Kargo şablonu detaylarını döndürür.
      *
-     * @param string $template_name Şablon adı
+     * @param int $template_id Şablon ID
      * @return object
      */
-    public function getShipmentTemplate(string $template_name): object
+    public function getShipmentTemplate(int $template_id): object
     {
-        return $this->call('GetShipmentTemplate', [
-            'name' => $template_name
+        return $this->callApi('GetShipmentTemplate', [
+            'id' => $template_id
         ]);
     }
 } 
